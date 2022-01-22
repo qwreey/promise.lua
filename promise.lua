@@ -192,6 +192,7 @@ function promise.new(func,...)
 		error(("promise.new() 1 arg 'func' must be function, but got %s"):format(__type_func));
 	end
 
+	---@type promise
 	local this = {
 		__func = func;
 		__callArgs = pack(...);
@@ -205,6 +206,7 @@ function promise.spawn(func,...)
 	wrap(func)(...);
 end
 
+---@class promise_waitter
 local waitter = {};
 waitter.__index = waitter;
 function waitter:wait()
@@ -217,7 +219,7 @@ function waitter:add(this)
 	return insert(self,this);
 end
 function promise.waitter()
-	return setmetatable({},waitter);
+	return setmetatable({},waitter); ---@type promise_waitter
 end
 
 _G.promise = promise;
