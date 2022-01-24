@@ -1,6 +1,6 @@
 return {
 	name = 'qwreey75/promise',
-	version = '1.0.1',
+	version = '1.0.2',
 	homepage = 'https://github.com/qwreey75/promise.lua',
 	dependencies = {
 	},
