@@ -20,7 +20,7 @@ local _,prettyPrint = pcall(require,"pretty-print")
 local stdout = type(prettyPrint) == "table" and prettyPrint.stdout
 local ioStdout = io.write
 function promise.log(err)
-	err = "[Promise] " .. err;
+	err = "[Promise] " .. err:gsub("\n","\n          ");
 	if log and log.error then
 		log.error(err);
 	elseif logger and logger.error then
