@@ -209,7 +209,7 @@ function promise:execute()
 					results = pack(pcall(f,unpack(results)));
 					passed = remove(results,1);
 					if not passed then
-						promise.log(err_unhandled(self,results[1]));
+						promise.log(err_andThen(self,results[1]));
 						break;
 					end
 				end
