@@ -59,14 +59,19 @@ promise.__tostring = function(self)
 end;
 
 -- execute function when has no error
-function promise:andThen(func)
+function promise:andThen(func,...)
 	local __type_func = type(func);
 	if __type_func ~= "function" then
 		error(("promise:andThen() 1 arg 'func' must be function, but got %s"):format(__type_func));
 	end
 
 	if self.__state then
-		if self.__passed then
+		if not self.__passed then
+			return self;
+		end
+		if select("#",...) ~= 0 then
+			self.__results = pack(func(pack(...),unpack(self.__results or {})));
+		else
 			self.__results = pack(func(unpack(self.__results or {})));
 		end
 		return self;
@@ -74,17 +79,21 @@ function promise:andThen(func)
 
 	-- insert into list
 	local __then = self.__then;
+	local this = func;
 	if not __then then
 		__then = {};
 		self.__then = __then;
 	end
-	insert(__then,func);
+	if select("#",...) ~= 0 then
+		this = {func = this,...};
+	end
+	insert(__then,this);
 
 	return self;
 end
 
 -- execute function when has error
-function promise:catch(func)
+function promise:catch(func,...)
 	local __type_func = type(func);
 	if __type_func ~= "function" then
 		error(("promise:catch() 1 arg 'func' must be function, but got %s"):format(__type_func));
@@ -94,7 +103,11 @@ function promise:catch(func)
 		if self.__passed then
 			return self;
 		end
-		self.__results = pack(func(unpack(self.__results or {})));
+		if select("#",...) ~= 0 then
+			self.__results = pack(func(pack(...),unpack(self.__results or {})));
+		else
+			self.__results = pack(func(unpack(self.__results or {})));
+		end
 		return self;
 	end
 
@@ -104,7 +117,11 @@ function promise:catch(func)
 		__catch = {};
 		self.__catch = __catch;
 	end
-	insert(__catch,func);
+	local this = func;
+	if select("#",...) ~= 0 then
+		this = {func = this,...};
+	end
+	insert(__catch,this);
 
 	return self;
 end
@@ -197,6 +214,7 @@ end
 -- execute this promise, don't use this directly
 function promise:execute()
 	wrap(function ()
+		---@diagnostic disable-next-line
 		local results = pack(pcall(self.__func,unpack(self.__callArgs)));
 		self.__state = true;
 		local passed = remove(results,1);
@@ -206,7 +224,13 @@ function promise:execute()
 			local _then = self.__then;
 			if _then then
 				for _,f in ipairs(_then) do
-					results = pack(pcall(f,unpack(results)));
+					if type(f) == "table" then
+						local args = f;
+						f = f.func;
+						results = pack(pcall(f,args,unpack(results)));
+					else
+						results = pack(pcall(f,unpack(results)));
+					end
 					passed = remove(results,1);
 					if not passed then
 						promise.log(err_andThen(self,results[1]));
@@ -229,7 +253,13 @@ function promise:execute()
 			local catch = self.__catch;
 			if catch then
 				for _,f in ipairs(catch) do
-					results = pack(pcall(f,unpack(results)));
+					if type(f) == "table" then
+						local args = f;
+						f = f.func;
+						results = pack(pcall(f,args,unpack(results)));
+					else
+						results = pack(pcall(f,unpack(results)));
+					end
 					passed = remove(results,1);
 					if not passed then
 						promise.log(err_catch(self,results[1]));
