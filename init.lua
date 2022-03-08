@@ -69,11 +69,18 @@ function promise:andThen(func,...)
 		if not self.__passed then
 			return self;
 		end
+		local results;
 		if select("#",...) ~= 0 then
-			self.__results = pack(func(pack(...),unpack(self.__results or {})));
+			results = pack(pcall(func,pack(...),unpack(self.__results or {})));
 		else
-			self.__results = pack(func(unpack(self.__results or {})));
+			results = pack(func(unpack(self.__results or {})));
 		end
+		local passed = remove(results,1);
+		if not passed then
+			local err = results[1];
+			err_andThen(self,tostring(err))
+		end
+		self.__results = results;
 		return self;
 	end
 
