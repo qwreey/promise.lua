@@ -12,8 +12,10 @@ local yield = coroutine.yield;
 local running = coroutine.running;
 local resume = coroutine.resume;
 local pack = table.pack;
+local oldUnpack = unpack;
 local function unpack(t,n,p)
-	if not n then n = t.n or #t end
+	if not n then n = t.n end
+	if not n then return oldUnpack(t) end
 	if (not n) or n == 0 then
 		return;
 	elseif not p then
