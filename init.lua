@@ -253,7 +253,7 @@ function promise:execute()
 					if type(f) == "table" then
 						local args = f;
 						f = f.func;
-						results = pack(pcall(f,args,unpack(results)));
+						results = pack(pcall(f,unpack(args),unpack(results)));
 					else
 						results = pack(pcall(f,unpack(results)));
 					end
@@ -282,7 +282,7 @@ function promise:execute()
 					if type(f) == "table" then
 						local args = f;
 						f = f.func;
-						results = pack(pcall(f,args,unpack(results)));
+						results = pack(pcall(f,unpack(args),unpack(results)));
 					else
 						results = pack(pcall(f,unpack(results)));
 					end
