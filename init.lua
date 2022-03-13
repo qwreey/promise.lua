@@ -14,8 +14,9 @@ local resume = coroutine.resume;
 local pack = table.pack;
 local function unpack(t,n,p)
 	if not n then n = t.n or #t end
-	if (not n) or n == 0 then return; end
-	if n == p then
+	if (not n) or n == 0 then
+		return;
+	elseif n == p then
 		return t[n];
 	elseif not p then
 		p = 1;
