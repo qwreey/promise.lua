@@ -11,8 +11,19 @@ local wrap = coroutine.wrap;
 local yield = coroutine.yield;
 local running = coroutine.running;
 local resume = coroutine.resume;
-local unpack = table.unpack;
 local pack = table.pack;
+local function unpack(t,n,p)
+	if not n then n = t.n or #t end
+	if (not n) or n == 0 then return; end
+	if n == p then
+		return t[n];
+	elseif not p then
+		p = 1;
+		if n == 1 then return t[1]; end
+		return t[1],unpack(t,n,p+1);
+	end
+	return t[p],unpack(t,n,p+1);
+end
 --#endregion --* Const *--
 --#region --* Log/Debug *--
 ---@diagnostic disable
@@ -71,7 +82,7 @@ function promise:andThen(func,...)
 		end
 		local results;
 		if select("#",...) ~= 0 then
-			results = pack(pcall(func,pack(...),unpack(self.__results or {})));
+			results = pack(pcall(func,...,unpack(self.__results or {})));
 		else
 			results = pack(pcall(func,unpack(self.__results or {})));
 		end
@@ -112,7 +123,7 @@ function promise:catch(func,...)
 		end
 		local results;
 		if select("#",...) ~= 0 then
-			results = pack(pcall(func,pack(...),unpack(self.__results or {})));
+			results = pack(pcall(func,...,unpack(self.__results or {})));
 		else
 			results = pack(pcall(func,unpack(self.__results or {})));
 		end
