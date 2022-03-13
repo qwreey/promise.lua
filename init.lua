@@ -103,9 +103,9 @@ function promise:andThen(func,...)
 		__then = {};
 		self.__then = __then;
 	end
-	local len = select("#",...);
-	if len ~= 0 then
-		this = {func = this,n = len,...};
+	if select("#",...) ~= 0 then
+		this = pack(...);
+		this.func = func;
 	end
 	insert(__then,this);
 
@@ -145,9 +145,9 @@ function promise:catch(func,...)
 		self.__catch = __catch;
 	end
 	local this = func;
-	local len = select("#",...);
-	if len ~= 0 then
-		this = {func = this,n = len,...};
+	if select("#",...) ~= 0 then
+		this = pack(...);
+		this.func = func;
 	end
 	insert(__catch,this);
 
