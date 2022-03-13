@@ -84,7 +84,7 @@ function promise:andThen(func,...)
 		end
 		local results;
 		if select("#",...) ~= 0 then
-			results = pack(pcall(func,...,unpack(self.__results or {})));
+			results = pack(pcall(func,pack(...),unpack(self.__results or {})));
 		else
 			results = pack(pcall(func,unpack(self.__results or {})));
 		end
@@ -126,7 +126,7 @@ function promise:catch(func,...)
 		end
 		local results;
 		if select("#",...) ~= 0 then
-			results = pack(pcall(func,...,unpack(self.__results or {})));
+			results = pack(pcall(func,pack(...),unpack(self.__results or {})));
 		else
 			results = pack(pcall(func,unpack(self.__results or {})));
 		end
@@ -256,7 +256,7 @@ function promise:execute()
 					if type(f) == "table" then
 						local args = f;
 						f = f.func;
-						results = pack(pcall(f,unpack(args),unpack(results)));
+						results = pack(pcall(f,args,unpack(results)));
 					else
 						results = pack(pcall(f,unpack(results)));
 					end
@@ -285,7 +285,7 @@ function promise:execute()
 					if type(f) == "table" then
 						local args = f;
 						f = f.func;
-						results = pack(pcall(f,unpack(args),unpack(results)));
+						results = pack(pcall(f,args,unpack(results)));
 					else
 						results = pack(pcall(f,unpack(results)));
 					end
