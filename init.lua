@@ -222,7 +222,7 @@ end
 
 -- return results in unpacked table
 function promise:getResults()
-	return unpack(self:getResultsTable());
+	return unpack(self.__results);
 end
 
 -- wait for this promise to complete
@@ -336,6 +336,20 @@ function promise.new(func,...)
 
 	return this;
 end
+
+---wait for execution and return results
+function promise:await()
+	self:wait();
+	return unpack(self.__results);
+end
+
+---decorates function as async, if call this, it will return promise and you and add andThen and catch and wait
+function promise.async(func)
+	return function(...)
+		return promise.new(func,...);
+	end;
+end
+
 --#endregion --* Promise Class *--
 --#region --* Spawn Function *--
 local traceback = debug.traceback
