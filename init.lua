@@ -390,6 +390,7 @@ end
 local waitterNew = waitter.new;
 setmetatable(waitter,{
 	__call = function (self)
+		if self and (self ~= waitter) then return self; end
 		return waitterNew();
 	end;
 })
