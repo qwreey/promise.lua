@@ -388,7 +388,7 @@ function waitter.new()
 	return setmetatable({},waitter);
 end
 local waitterNew = waitter.new;
-setmetatable(waitter.{
+setmetatable(waitter,{
 	__call = function (self)
 		return waitterNew();
 	end;
