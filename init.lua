@@ -373,12 +373,27 @@ function waitter:wait()
 		self[index] = nil;
 	end
 end
+function waitter:await()
+	local results = {};
+	for index,this in ipairs(self) do
+		insert(results,this:await());
+		self[index] = nil;
+	end
+	return results;
+end
 function waitter:add(this)
 	return insert(self,this);
 end
-function promise.waitter()
+function waitter.new()
 	return setmetatable({},waitter);
 end
+local waitterNew = waitter.new;
+setmetatable(waitter.{
+	__call = function (self)
+		return waitterNew();
+	end;
+})
+promise.waitter = waitter;
 --#endregion --* Promise Waitter *--
 
 _G.promise = promise;
