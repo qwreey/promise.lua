@@ -392,7 +392,7 @@ function waitter:__call()
 end
 local waitterNew = waitter.new;
 setmetatable(waitter,{
-	__call = function (self)
+	__call = function ()
 		return waitterNew();
 	end;
 })
