@@ -398,6 +398,10 @@ setmetatable(waitter,{
 	end;
 })
 promise.waitter = waitter;
+if false then
+	---@return PromiseWaitter
+	function promise.waitter() end
+end
 --#endregion --* Promise Waitter *--
 
 _G.promise = promise;
