@@ -36,15 +36,16 @@ local _,prettyPrint = pcall(require,"pretty-print")
 local stdout = type(prettyPrint) == "table" and prettyPrint.stdout
 local ioStdout = io.write
 function promise.log(err)
+	err:gsub("\n+$","");
 	err = "[Promise] " .. err:gsub("\n","\n          ");
 	if log and log.error then
 		log.error(err);
 	elseif logger and logger.error then
 		logger.error(err);
 	elseif stdout then
-		stdout:write(err);
+		stdout:write(err.."\n");
 	elseif ioStdout then
-		ioStdout(err);
+		ioStdout(err.."\n");
 	elseif print then
 		print(err);
 	end
