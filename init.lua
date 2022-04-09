@@ -345,10 +345,44 @@ function promise:await()
 end
 
 ---decorates function as async, if call this, it will return promise and you and add andThen and catch and wait
-function promise.async(func)
-	return function(...)
-		return promise.new(func,...);
+local async = {
+	__call = function (self,...)
+		local this = promise.new(self.__func,...);
+		local andThen = self.__then;
+		if andThen then
+			for _,func in ipairs(andThen) do
+				this:andThen(func);
+			end
+		end
+		local catch = self.__catch;
+		if catch then
+			for _,func in ipairs(catch) do
+				this:catch(func);
+			end
+		end
+		return this;
 	end;
+};
+function async:catch(func)
+	local catch = self.__catch;
+	if not catch then
+		catch = {};
+		self.__catch = catch;
+	end
+	insert(catch,func);
+	return self;
+end
+function async:andThen(func)
+	local andThen = self.__then;
+	if not andThen then
+		andThen = {};
+		self.__then = andThen;
+	end
+	insert(andThen,func);
+	return self;
+end
+function promise.async(func)
+	return setmetatable({__func = func},async);
 end
 
 --#endregion --* Promise Class *--
