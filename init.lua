@@ -1,7 +1,7 @@
 ---@class promise
 local promise = {};
 promise.__index = promise;
-waitter.__name = "promise";
+promise.__name = "promise";
 local promises = setmetatable({},{__mode = "v"});
 promise.promises = promises;
 
@@ -346,7 +346,9 @@ function promise:await()
 end
 
 ---decorates function as async, if call this, it will return promise and you and add andThen and catch and wait
+---@class AsyncFunction
 local async = {
+	---@return promise
 	__call = function (self,...)
 		local this = promise.new(self.__func,...);
 		local andThen = self.__then;
@@ -382,6 +384,7 @@ function async:andThen(func)
 	insert(andThen,func);
 	return self;
 end
+---@return AsyncFunction
 function promise.async(func)
 	return setmetatable({__func = func},async);
 end
