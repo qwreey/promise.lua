@@ -1,6 +1,7 @@
 ---@class promise
 local promise = {};
 promise.__index = promise;
+waitter.__name = "promise";
 local promises = setmetatable({},{__mode = "v"});
 promise.promises = promises;
 
@@ -402,6 +403,7 @@ end
 ---@class PromiseWaitter
 local waitter = {};
 waitter.__index = waitter;
+waitter.__name = "promise.waitter";
 function waitter:wait()
 	for index,this in ipairs(self) do
 		this:wait();
