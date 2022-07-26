@@ -384,6 +384,7 @@ function async:andThen(func)
 	insert(andThen,func);
 	return self;
 end
+async.__index = async;
 ---@return AsyncFunction
 function promise.async(func)
 	return setmetatable({__func = func},async);
