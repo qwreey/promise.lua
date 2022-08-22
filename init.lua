@@ -34,6 +34,8 @@ local unpack = table.unpack;
 --#region --* Log/Debug *--
 ---@diagnostic disable
 local _,prettyPrint = pcall(require,"pretty-print")
+local _,timer = pcall(require,"timer")
+local setTimeout = timer and timer.setTimeout
 local stdout = type(prettyPrint) == "table" and prettyPrint.stdout
 local ioStdout = io.write
 function promise.log(err)
@@ -75,6 +77,13 @@ promise.__tostring = function(self)
 	setmetatable(self,promise);
 	return ("promise: %s (%s)"):format(this:match("0x.+"),self.__id);
 end;
+
+function promise:__uncatch()
+	local notCatched = self.__notCatched
+	if notCatched then
+		promise.log(err_unhandled(self,notCatched));
+	end
+end
 
 -- execute function when has no error
 function promise:andThen(func,...)
@@ -141,6 +150,7 @@ function promise:catch(func,...)
 			promise.log(err_catch(self,tostring(err)));
 		end
 		self.__results = results;
+		self.__notCatched = false;
 		return self;
 	end
 
@@ -204,16 +214,24 @@ end
 
 -- state of this promise
 function promise:isDone()
-	return self.__state,self:isSucceed();
+	return self.__state,self.__passed,unpack(self.__results or {});
 end
 
 -- check promise that succeed
 function promise:isSucceed()
+	self.__notCatched = false; -- setCatched
 	return self.__passed,unpack(self.__results or {});
+end
+
+-- set promise was catched. this method will remove '[Promise] Unhandled promise exception' error
+-- it should be used on promise was ended
+function promise:setCatched()
+	self.__notCatched = false;
 end
 
 -- check promise that failed
 function promise:isFailed()
+	self.__notCatched = false; -- setCatched
 	return not self.__passed,unpack(self.__results or {});
 end
 
@@ -301,7 +319,14 @@ function promise:execute()
 					end
 				end
 				self.__results = results;
-			else promise.log(err_unhandled(self,results[1]));
+			else
+				if type(self.__notCatched) == "nil" then
+					self.__notCatched = results[1]; -- setCatched
+					if setTimeout then
+						setTimeout(2000,self.__uncatch,self);
+					else self:__uncatch();
+					end
+				end
 			end
 			self.__catch = nil;
 		end
