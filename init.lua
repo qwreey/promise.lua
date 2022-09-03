@@ -249,7 +249,7 @@ end
 function promise:wait()
 	local thisThread = running();
 	if not thisThread then
-		error("promise:wait() must be runned on ");
+		error("promise:wait() must be runned on thread");
 	end
 	if self.__state then
 		return self;
@@ -320,7 +320,7 @@ function promise:execute()
 				end
 				self.__results = results;
 			else
-				if type(self.__notCatched) == "nil" then
+				if self.__notCatched == nil then
 					self.__notCatched = results[1]; -- setCatched
 					if setTimeout then
 						setTimeout(2000,self.__uncatch,self);
@@ -367,6 +367,9 @@ end
 ---wait for execution and return results
 function promise:await()
 	self:wait();
+	if (not self.__passed) and (self.__notCatched == nil) then
+		error((self.__results or {})[1]);
+	end
 	return unpack(self.__results);
 end
 
