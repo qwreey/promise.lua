@@ -367,9 +367,18 @@ end
 ---wait for execution and return results
 function promise:await()
 	self:wait();
-	if (not self.__passed) and (self.__notCatched == nil) then
-		error((self.__results or {})[1]);
+	if not self.__passed then
+		if self.__notCatched == nil then
+			error((self.__results or {})[1]);
+		end
+		return;
 	end
+	return unpack(self.__results);
+end
+
+---await, but not make throw error, but it also not catch error
+function promise:awaitSafe()
+	self:wait();
 	return unpack(self.__results);
 end
 
@@ -446,6 +455,14 @@ function waitter:await()
 	local results = {};
 	for index,this in ipairs(self) do
 		insert(results,this:await());
+		self[index] = nil;
+	end
+	return results;
+end
+function waitter:awaitSafe()
+	local results = {};
+	for index,this in ipairs(self) do
+		insert(results,this:awaitSafe());
 		self[index] = nil;
 	end
 	return results;
