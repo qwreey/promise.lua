@@ -13,22 +13,12 @@ local yield = coroutine.yield;
 local running = coroutine.running;
 local resume = coroutine.resume;
 local pack = table.pack;
-local unpack = table.unpack;
--- local oldUnpack = unpack;
--- local function unpack(t,n,p)
--- 	if not n then n = t.n end
--- 	if not n then return oldUnpack(t) end
--- 	if (not n) or n == 0 then
--- 		return;
--- 	elseif not p then
--- 		if n == 1 then return t[1]; end
--- 		p = 1;
--- 		return t[1],unpack(t,n,p+1);
--- 	elseif n >= p then
--- 		return t[n];
--- 	end
--- 	return t[p],unpack(t,n,p+1);
--- end
+local tunpack = table.unpack;
+local function unpack(t)
+	local n = t.n;
+	if n then return tunpack(t,1,n) end
+	return tunpack(t)
+end
 
 --#endregion --* Const *--
 --#region --* Log/Debug *--
@@ -264,81 +254,81 @@ function promise:wait()
 end
 
 -- execute this promise, don't use this directly
-function promise:execute()
-	wrap(function ()
-		---@diagnostic disable-next-line
-		local results = pack(pcall(self.__func,unpack(self.__callArgs)));
-		self.__state = true;
-		local passed = remove(results,1);
-		self.__passed = passed;
-		self.__results = results;
-		if passed then
-			local _then = self.__then;
-			if _then then
-				for _,f in ipairs(_then) do
-					if type(f) == "table" then
-						local args = f;
-						f = f.func;
-						results = pack(pcall(f,args,unpack(results)));
-					else
-						results = pack(pcall(f,unpack(results)));
-					end
-					passed = remove(results,1);
-					if not passed then
-						promise.log(err_andThen(self,results[1]));
-						break;
-					end
+local function executePromise(self)
+	---@diagnostic disable-next-line
+	local results = pack(pcall(self.__func,unpack(self.__callArgs)));
+	self.__state = true;
+	local passed = remove(results,1);
+	self.__passed = passed;
+	self.__results = results;
+	if passed then
+		local _then = self.__then;
+		if _then then
+			for _,f in ipairs(_then) do
+				if type(f) == "table" then
+					local args = f;
+					f = f.func;
+					results = pack(pcall(f,args,unpack(results)));
+				else
+					results = pack(pcall(f,unpack(results)));
 				end
-				self.__results = results;
-				self.__then = nil;
+				passed = remove(results,1);
+				if not passed then
+					promise.log(err_andThen(self,results[1]));
+					break;
+				end
 			end
+			self.__results = results;
+			self.__then = nil;
+		end
+	else
+		local retry = self.__retry;
+		if retry and (retry > 0) then
+			self.__retry = retry - 1;
+			local whenRetry = self.__whenRetry;
+			if whenRetry then
+				whenRetry(unpack(results));
+			end
+			return self:execute();
+		end
+		local catch = self.__catch;
+		if catch then
+			for _,f in ipairs(catch) do
+				if type(f) == "table" then
+					local args = f;
+					f = f.func;
+					results = pack(pcall(f,args,unpack(results)));
+				else
+					results = pack(pcall(f,unpack(results)));
+				end
+				passed = remove(results,1);
+				if not passed then
+					promise.log(err_catch(self,results[1]));
+					break;
+				end
+			end
+			self.__results = results;
 		else
-			local retry = self.__retry;
-			if retry and (retry > 0) then
-				self.__retry = retry - 1;
-				local whenRetry = self.__whenRetry;
-				if whenRetry then
-					whenRetry(unpack(results));
-				end
-				return self:execute();
-			end
-			local catch = self.__catch;
-			if catch then
-				for _,f in ipairs(catch) do
-					if type(f) == "table" then
-						local args = f;
-						f = f.func;
-						results = pack(pcall(f,args,unpack(results)));
-					else
-						results = pack(pcall(f,unpack(results)));
-					end
-					passed = remove(results,1);
-					if not passed then
-						promise.log(err_catch(self,results[1]));
-						break;
-					end
-				end
-				self.__results = results;
-			else
-				if self.__notCatched == nil then
-					self.__notCatched = results[1]; -- setCatched
-					if setTimeout then
-						setTimeout(2000,self.__uncatch,self);
-					else self:__uncatch();
-					end
+			if self.__notCatched == nil then
+				self.__notCatched = results[1]; -- setCatched
+				if setTimeout then
+					setTimeout(2000,self.__uncatch,self);
+				else self:__uncatch();
 				end
 			end
-			self.__catch = nil;
 		end
-		local wait = self.__wait;
-		if wait then
-			for _,waitter in ipairs(wait) do
-				resume(waitter,self);
-			end
-			self.__wait = nil;
+		self.__catch = nil;
+	end
+	local wait = self.__wait;
+	if wait then
+		for _,waitter in ipairs(wait) do
+			resume(waitter,self);
 		end
-	end)();
-
+		self.__wait = nil;
+	end
+end
+function promise:execute()
+	wrap(executePromise)(self);
 	return self;
 end
 
@@ -454,7 +444,8 @@ end
 function waitter:await()
 	local results = {};
 	for index,this in ipairs(self) do
-		insert(results,this:await());
+		local selected = this:await();
+		insert(results,selected);
 		self[index] = nil;
 	end
 	return results;
@@ -462,7 +453,8 @@ end
 function waitter:awaitSafe()
 	local results = {};
 	for index,this in ipairs(self) do
-		insert(results,this:awaitSafe());
+		local selected = this:awaitSafe();
+		insert(results,selected);
 		self[index] = nil;
 	end
 	return results;
