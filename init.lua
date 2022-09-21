@@ -327,6 +327,7 @@ local function executePromise(self)
 		self.__wait = nil;
 	end
 end
+---Execute promise, this is used for internally
 function promise:execute()
 	wrap(executePromise)(self);
 	return self;
@@ -334,6 +335,8 @@ end
 
 -- make new promise object
 local ids = 1;
+
+---@return promise Promise
 function promise.new(func,...)
 	local __type_func = type(func);
 	if __type_func ~= "function" then
