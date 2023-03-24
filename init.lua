@@ -27,7 +27,7 @@ local _,prettyPrint = pcall(require,"pretty-print")
 local _,timer = pcall(require,"timer")
 local setTimeout = timer and timer.setTimeout
 local stdout = type(prettyPrint) == "table" and prettyPrint.stdout
-local ioStdout = io.write
+local ioStdout = io and io.write
 function promise.log(err)
 	err:gsub("\n+$","");
 	err = "[Promise] " .. err:gsub("\n","\n          ");
