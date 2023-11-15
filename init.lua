@@ -465,16 +465,16 @@ end
 function waitter:add(this)
 	return insert(self,this);
 end
-function waitter.new()
-	return setmetatable({},waitter);
+function waitter.new(...)
+	return setmetatable({...},waitter);
 end
 function waitter:__call()
 	return self;
 end
 local waitterNew = waitter.new;
 setmetatable(waitter,{
-	__call = function ()
-		return waitterNew();
+	__call = function (...)
+		return waitterNew(...);
 	end;
 })
 promise.waitter = waitter;
