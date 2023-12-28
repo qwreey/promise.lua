@@ -1,11 +1,16 @@
-return {
-	name = 'qwreey75/promise',
-	version = '1.0.2',
-	homepage = 'https://github.com/qwreey75/promise.lua',
-	dependencies = {
-	},
-	tags = {'coroutine','promise','async'},
-	license = 'MIT',
-	author = 'qwreey75',
-	files = {'**.lua'},
-}
+  return {
+    name = "qwreey/promise",
+    version = "1.0.3",
+    description = "Simple lua style promise wrapper",
+    tags = { "lua", "promise", "coroutine", "async" },
+    license = "MIT",
+    author = { name = "qwreey", email = "me@qwreey.moe" },
+    homepage = "https://github.com/qwreey/promise.lua",
+    dependencies = {},
+    files = {
+      "**.lua",
+      "!README.md",
+      "!test*",
+    }
+  }
+  
